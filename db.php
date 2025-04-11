@@ -1,8 +1,8 @@
 <?php
-$host = 'localhost';
+$host = 'sql111.infinityfree.com';
 $dbname = 'if0_38729248_agenda_contactos';
-$username = 'root'; // Cambiar según tu configuración
-$password = ''; // Cambiar según tu configuración
+$username = 'if0_38729248'; // Cambiar según tu configuración
+$password = 'PDJGSeJeei5OIbT'; // Cambiar según tu configuración
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
