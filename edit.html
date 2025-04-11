@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Contacto</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos CSS */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1><i class="fas fa-edit"></i> Editar Contacto</h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <?php
+        require_once 'db.php';
+
+        if (!isset($_GET['id'])) {
+            header("Location: index.php");
+            exit();
+        }
+
+        $id = $_GET['id'];
+
+        // Obtener el contacto a editar
+        $stmt = $conn->prepare("SELECT * FROM contactos WHERE id = ?");
+        $stmt->execute([$id]);
+        $contacto = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$contacto) {
+            header("Location: index.php?message=Contacto no encontrado&type=error");
+            exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $nombres = $_POST['nombres'];
+            $apaterno = $_POST['apaterno'];
+            $amaterno = $_POST['amaterno'] ?? null;
+            $genero = $_POST['genero'];
+            $fecha_nacimiento = $_POST['fecha_nacimiento'];
+            $telefono = $_POST['telefono'];
+            $email = $_POST['email'];
+            $linkedin = $_POST['linkedin'] ?? null;
+
+            try {
+                $stmt = $conn->prepare("UPDATE contactos SET nombres = ?, apaterno = ?, amaterno = ?, genero = ?, fecha_nacimiento = ?, telefono = ?, email = ?, linkedin = ? WHERE id = ?");
+                $stmt->execute([$nombres, $apaterno, $amaterno, $genero, $fecha_nacimiento, $telefono, $email, $linkedin, $id]);
+
+                header("Location: index.php?message=Contacto actualizado correctamente&type=success");
+                exit();
+            } catch(PDOException $e) {
+                header("Location: edit.php?id=$id&message=Error al actualizar contacto: " . $e->getMessage() . "&type=error");
+                exit();
+            }
+        }
+        ?>
+
+        <?php if (isset($_GET['message'])): ?>
+            <p class="message <?php echo htmlspecialchars($_GET['type']); ?>"><?php echo htmlspecialchars($_GET['message']); ?></p>
+        <?php endif; ?>
+
+        <div class="form-container">
+            <form action="edit.php?id=<?php echo htmlspecialchars($id); ?>" method="post">
+                <div class="form-group">
+                    <label for="nombres">Nombres:</label>
+                    <input type="text" id="nombres" name="nombres" class="form-control" value="<?php echo htmlspecialchars($contacto['nombres']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="apaterno">Apellido Paterno:</label>
+                    <input type="text" id="apaterno" name="apaterno" class="form-control" value="<?php echo htmlspecialchars($contacto['apaterno']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="amaterno">Apellido Materno:</label>
+                    <input type="text" id="amaterno" name="amaterno" class="form-control" value="<?php echo htmlspecialchars($contacto['amaterno']); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="genero">Género:</label>
+                    <select id="genero" name="genero" class="form-control" required>
+                        <option value="Masculino" <?php echo $contacto['genero'] === 'Masculino' ? 'selected' : ''; ?>>Masculino</option>
+                        <option value="Femenino" <?php echo $contacto['genero'] === 'Femenino' ? 'selected' : ''; ?>>Femenino</option>
+                        <option value="Otro" <?php echo $contacto['genero'] === 'Otro' ? 'selected' : ''; ?>>Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control" value="<?php echo htmlspecialchars($contacto['fecha_nacimiento']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="tel" id="telefono" name="telefono" class="form-control" value="<?php echo htmlspecialchars($contacto['telefono']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($contacto['email']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn (solo perfil):</label>
+                    <input type="text" id="linkedin" name="linkedin" class="form-control" value="<?php echo htmlspecialchars($contacto['linkedin']); ?>" placeholder="linkedin.com/in/tuperfil">
+                </div>
+                <button type="submit" class="btn">Actualizar Contacto</button>
+            </form>
+        </div>
+
+        <p><a href="index.php">Volver a la lista</a></p>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; margin-top: 40px; background-color: var(--dark-color); color: white;">
+        <p>Sistema de Agenda de Contactos &copy; <?php echo date('Y'); ?></p>
+    </footer>
+</body>
+</html>
