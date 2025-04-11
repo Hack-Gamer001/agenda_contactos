@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Contacto</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos CSS */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1><i class="fas fa-address-book"></i> Agregar Contacto</h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="form-container">
+            <h2><i class="fas fa-user-plus"></i> Agregar Nuevo Contacto</h2>
+            <form id="contactForm" method="post">
+                <div class="form-group">
+                    <label for="nombres">Nombres:</label>
+                    <input type="text" id="nombres" name="nombres" class="form-control" required>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="apaterno">Apellido Paterno:</label>
+                        <input type="text" id="apaterno" name="apaterno" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="amaterno">Apellido Materno:</label>
+                        <input type="text" id="amaterno" name="amaterno" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="genero">Género:</label>
+                        <select id="genero" name="genero" class="form-control" required>
+                            <option value="">Seleccione...</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-md-6">
+                        <label for="telefono">Teléfono:</label>
+                        <input type="tel" id="telefono" name="telefono" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="linkedin">LinkedIn (solo perfil):</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">linkedin.com/in/</span>
+                        </div>
+                        <input type="text" id="linkedin" name="linkedin" class="form-control" placeholder="tuperfil">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn"><i class="fas fa-save"></i> Guardar Contacto</button>
+            </form>
+        </section>
+    </main>
+
+    <footer style="text-align: center; padding: 20px; margin-top: 40px; background-color: var(--dark-color); color: white;">
+        <p>Sistema de Agenda de Contactos &copy; <?php echo date('Y'); ?></p>
+    </footer>
+
+    <script>
+        // JavaScript para manejar el envío del formulario
+        document.getElementById('contactForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('create.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = 'index.php?message=' + data.message + '&type=success';
+                } else {
+                    window.location.href = 'index.php?message=' + data.message + '&type=error';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+    <?php
+    require_once 'db.php';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $nombres = $_POST['nombres'];
+        $apaterno = $_POST['apaterno'];
+        $amaterno = $_POST['amaterno'] ?? null;
+        $genero = $_POST['genero'];
+        $fecha_nacimiento = $_POST['fecha_nacimiento'];
+        $telefono = $_POST['telefono'];
+        $email = $_POST['email'];
+        $linkedin = $_POST['linkedin'] ?? null;
+
+        try {
+            $stmt = $conn->prepare("INSERT INTO contactos (nombres, apaterno, amaterno, genero, fecha_nacimiento, telefono, email, linkedin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$nombres, $apaterno, $amaterno, $genero, $fecha_nacimiento, $telefono, $email, $linkedin]);
+
+            echo json_encode(['success' => true, 'message' => 'Contacto agregado correctamente']);
+            exit();
+        } catch(PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Error al agregar contacto: ' . $e->getMessage()]);
+            exit();
+        }
+    } else {
+        header("Location: index.php");
+        exit();
+    }
+    ?>
+</body>
+</html>
